@@ -69,7 +69,7 @@ class LabResultController extends Controller
             'units' => $service->units,
             'reference_range' => $referenceRangeText,
             'flag' => $flag,
-            'notes' => $validated['notes'],
+            'notes' => $validated['notes'] ?? null,
             'entered_by_user_id' => Auth::id(),
         ]);
 

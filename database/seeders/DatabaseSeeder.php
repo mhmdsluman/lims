@@ -24,7 +24,9 @@ class DatabaseSeeder extends Seeder
 
         $this->call([
             BedSeeder::class,
-            DiagnosisCodeSeeder::class, // <-- Add this
+            DiagnosisCodeSeeder::class,
+            LabInventoryItemSeeder::class,
+            LabTestSeeder::class,
         ]);
     }
 }
