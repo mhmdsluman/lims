@@ -23,9 +23,16 @@ class BillController extends Controller
 
         $bills = Bill::with(['patient'])->latest()->paginate(10);
 
+        $stats = [
+            'total_unpaid' => Bill::where('status', 'Unpaid')->sum('total_amount'),
+            'total_overdue' => Bill::where('status', 'Unpaid')->where('created_at', '<', now()->subDays(30))->sum('total_amount'),
+            'total_paid_last_30_days' => Bill::where('status', 'Paid')->where('updated_at', '>=', now()->subDays(30))->sum('paid_amount'),
+        ];
+
         return Inertia::render('Billing/Index', [
             'unbilledAppointments' => $unbilledAppointments,
             'bills' => $bills,
+            'stats' => $stats,
         ]);
     }
 

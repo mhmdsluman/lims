@@ -1,8 +1,9 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import AppointmentDetailModal from '@/Components/AppointmentDetailModal.vue'; // <-- Import the new modal
-import { Head, Link, useForm, router } from '@inertiajs/vue3';
+import AppointmentDetailModal from '@/Components/AppointmentDetailModal.vue';
+import { Head, useForm, router } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
+import { ChevronLeftIcon, ChevronRightIcon, CalendarIcon } from '@heroicons/vue/24/solid';
 
 const props = defineProps({
     appointments: Array,
@@ -18,7 +19,6 @@ const form = useForm({
     reason_for_visit: '',
 });
 
-// State for the modal
 const showDetailModal = ref(false);
 const selectedAppointment = ref(null);
 
@@ -27,19 +27,15 @@ const openAppointmentDetails = (appointment) => {
     showDetailModal.value = true;
 };
 
-// Group appointments by day for easy display in the calendar
 const appointmentsByDay = computed(() => {
     return props.appointments.reduce((acc, apt) => {
         const day = new Date(apt.appointment_time).getDate();
-        if (!acc[day]) {
-            acc[day] = [];
-        }
+        if (!acc[day]) acc[day] = [];
         acc[day].push(apt);
         return acc;
     }, {});
 });
 
-// Calendar logic
 const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const today = new Date();
 const date = ref(new Date(props.currentDate.year, props.currentDate.month - 1, 1));
@@ -64,78 +60,70 @@ const submit = () => {
 
 <template>
     <Head title="Appointment Scheduling" />
-
     <AuthenticatedLayout>
         <template #header>
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                Appointment Scheduling
-            </h2>
+            <div class="flex items-center gap-3">
+                <CalendarIcon class="h-7 w-7 text-teal-500" />
+                <div>
+                    <h2 class="font-semibold text-xl text-gray-900">Appointment Scheduling</h2>
+                    <p class="text-sm text-gray-500">Book, view, and manage patient appointments.</p>
+                </div>
+            </div>
         </template>
 
-        <div class="py-12">
-            <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-3 gap-6">
-
-                <!-- Column 1: Booking Form (no changes) -->
-                <div class="md:col-span-1">
-                    <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                        <div class="p-6 bg-white border-b border-gray-200">
-                            <h3 class="text-lg font-semibold mb-4">Book New Appointment</h3>
-                            <form @submit.prevent="submit">
-                                <div class="mb-4">
-                                    <label for="patient_id" class="block font-medium text-sm text-gray-700">Patient</label>
-                                    <select id="patient_id" v-model="form.patient_id" class="block mt-1 w-full rounded-md shadow-sm border-gray-300" required>
-                                        <option :value="null" disabled>Select a patient</option>
-                                        <option v-for="patient in patients" :key="patient.id" :value="patient.id">{{ patient.first_name }} {{ patient.last_name }}</option>
-                                    </select>
-                                </div>
-                                <div class="mb-4">
-                                    <label for="clinician_id" class="block font-medium text-sm text-gray-700">Clinician</label>
-                                    <select id="clinician_id" v-model="form.clinician_id" class="block mt-1 w-full rounded-md shadow-sm border-gray-300" required>
-                                        <option :value="null" disabled>Select a clinician</option>
-                                        <option v-for="clinician in clinicians" :key="clinician.id" :value="clinician.id">{{ clinician.name }}</option>
-                                    </select>
-                                </div>
-                                <div class="mb-4">
-                                    <label for="appointment_time" class="block font-medium text-sm text-gray-700">Date & Time</label>
-                                    <input id="appointment_time" type="datetime-local" v-model="form.appointment_time" class="block mt-1 w-full rounded-md shadow-sm border-gray-300" required>
-                                </div>
-                                <div class="mb-4">
-                                    <label for="reason_for_visit" class="block font-medium text-sm text-gray-700">Reason for Visit (Optional)</label>
-                                    <textarea id="reason_for_visit" v-model="form.reason_for_visit" rows="3" class="block mt-1 w-full rounded-md shadow-sm border-gray-300"></textarea>
-                                </div>
-                                <div class="flex items-center justify-end">
-                                    <button type="submit" :disabled="form.processing" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50">Book Appointment</button>
-                                </div>
-                            </form>
-                        </div>
+        <div class="py-8">
+            <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div class="lg:col-span-1">
+                    <div class="bg-white rounded-2xl shadow-md border border-gray-100 p-6">
+                        <h3 class="text-lg font-semibold mb-4">Book New Appointment</h3>
+                        <form @submit.prevent="submit" class="space-y-4">
+                            <div>
+                                <label for="patient_id" class="block font-medium text-sm text-gray-700">Patient</label>
+                                <select id="patient_id" v-model="form.patient_id" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" required>
+                                    <option :value="null" disabled>Select a patient</option>
+                                    <option v-for="patient in patients" :key="patient.id" :value="patient.id">{{ patient.first_name }} {{ patient.last_name }}</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="clinician_id" class="block font-medium text-sm text-gray-700">Clinician</label>
+                                <select id="clinician_id" v-model="form.clinician_id" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" required>
+                                    <option :value="null" disabled>Select a clinician</option>
+                                    <option v-for="clinician in clinicians" :key="clinician.id" :value="clinician.id">{{ clinician.name }}</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="appointment_time" class="block font-medium text-sm text-gray-700">Date & Time</label>
+                                <input id="appointment_time" type="datetime-local" v-model="form.appointment_time" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" required>
+                            </div>
+                            <div>
+                                <label for="reason_for_visit" class="block font-medium text-sm text-gray-700">Reason for Visit (Optional)</label>
+                                <textarea id="reason_for_visit" v-model="form.reason_for_visit" rows="3" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"></textarea>
+                            </div>
+                            <div class="flex justify-end">
+                                <button type="submit" :disabled="form.processing" class="px-5 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 transition-colors">Book Appointment</button>
+                            </div>
+                        </form>
                     </div>
                 </div>
 
-                <!-- Column 2: Calendar View -->
-                <div class="md:col-span-2">
-                    <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                        <div class="p-6 bg-white border-b border-gray-200">
-                            <div class="flex justify-between items-center mb-4">
-                                <button @click="changeMonth(-1)" class="px-3 py-1 bg-gray-200 rounded">&lt; Prev</button>
-                                <h3 class="text-lg font-semibold">{{ currentDate.monthName }} {{ currentDate.year }}</h3>
-                                <button @click="changeMonth(1)" class="px-3 py-1 bg-gray-200 rounded">Next &gt;</button>
+                <div class="lg:col-span-2">
+                    <div class="bg-white rounded-2xl shadow-md border border-gray-100">
+                        <div class="p-6 border-b">
+                            <div class="flex justify-between items-center">
+                                <button @click="changeMonth(-1)" class="p-2 rounded-full hover:bg-gray-100"><ChevronLeftIcon class="h-5 w-5" /></button>
+                                <h3 class="text-xl font-bold">{{ currentDate.monthName }} {{ currentDate.year }}</h3>
+                                <button @click="changeMonth(1)" class="p-2 rounded-full hover:bg-gray-100"><ChevronRightIcon class="h-5 w-5" /></button>
                             </div>
-                            <div class="grid grid-cols-7 gap-1 text-center">
-                                <div v-for="day in daysOfWeek" :key="day" class="font-bold text-sm text-gray-600">{{ day }}</div>
-                                <div v-for="blank in firstDayOfMonth" :key="'blank-' + blank" class="border rounded-lg p-2 h-24"></div>
-                                <div v-for="day in daysInMonth" :key="day" class="border rounded-lg p-2 h-24 overflow-y-auto" :class="{'bg-blue-100': day === today.getDate() && currentDate.month === today.getMonth() + 1 && currentDate.year === today.getFullYear()}">
-                                    <div class="font-bold">{{ day }}</div>
-                                    <div v-if="appointmentsByDay[day]" class="text-xs text-left mt-1 space-y-1">
-                                        <div v-for="apt in appointmentsByDay[day]" :key="apt.id"
-                                             @click="openAppointmentDetails(apt)"
-                                             class="bg-blue-500 text-white p-1 rounded cursor-pointer hover:bg-blue-600">
-                                            <template v-if="apt.patient">
-                                                {{ apt.patient.first_name.charAt(0) }}. {{ apt.patient.last_name }}
-                                            </template>
-                                            <template v-else>
-                                                <span class="italic">Unknown Patient</span>
-                                            </template>
-                                        </div>
+                        </div>
+                        <div class="grid grid-cols-7 text-center">
+                            <div v-for="day in daysOfWeek" :key="day" class="font-bold text-sm text-gray-600 py-3">{{ day }}</div>
+                            <div v-for="blank in firstDayOfMonth" :key="'blank-' + blank" class="border-t border-r h-28"></div>
+                            <div v-for="day in daysInMonth" :key="day" class="border-t border-r h-28 p-1 text-left" :class="{'bg-indigo-50': day === today.getDate() && currentDate.month === today.getMonth() + 1 && currentDate.year === today.getFullYear()}">
+                                <div class="font-bold text-sm">{{ day }}</div>
+                                <div v-if="appointmentsByDay[day]" class="text-xs mt-1 space-y-1">
+                                    <div v-for="apt in appointmentsByDay[day]" :key="apt.id" @click="openAppointmentDetails(apt)" class="bg-teal-500 text-white px-2 py-1 rounded-md cursor-pointer hover:bg-teal-600 truncate">
+                                        <p class="font-semibold">{{ apt.patient.first_name }}</p>
+                                        <p class="text-xs">{{ new Date(apt.appointment_time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) }}</p>
                                     </div>
                                 </div>
                             </div>
@@ -145,11 +133,6 @@ const submit = () => {
             </div>
         </div>
 
-        <!-- Add the modal component to the template -->
-        <AppointmentDetailModal
-            :show="showDetailModal"
-            :appointment="selectedAppointment"
-            @close="showDetailModal = false"
-        />
+        <AppointmentDetailModal :show="showDetailModal" :appointment="selectedAppointment" @close="showDetailModal = false" />
     </AuthenticatedLayout>
 </template>
