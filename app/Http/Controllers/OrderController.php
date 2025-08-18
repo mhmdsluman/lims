@@ -6,6 +6,7 @@ use App\Models\Appointment;
 use App\Models\Bill;
 use App\Models\Order;
 use App\Models\Service;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -29,7 +30,7 @@ class OrderController extends Controller
      *
      * @throws \Illuminate\Validation\ValidationException
      */
-    public function store(Request $request, Appointment $appointment)
+    public function store(Request $request, Appointment $appointment, NotificationService $notificationService)
     {
         $validated = $request->validate([
             'items' => 'required|array|min:1',
@@ -51,7 +52,7 @@ class OrderController extends Controller
             }
         }
 
-        DB::transaction(function () use ($validated, $appointment, $services) {
+        DB::transaction(function () use ($validated, $appointment, $services, $notificationService) {
             // Create the clinical order
             $order = Order::create([
                 'patient_id'         => $appointment->patient_id,
@@ -83,6 +84,17 @@ class OrderController extends Controller
                         ]);
                     }
                 }
+            }
+
+            // Send notifications based on department
+            $hasLabItem = $services->contains(fn($service) => $service->department === 'Laboratory');
+            if ($hasLabItem) {
+                $patientName = $appointment->patient->full_name;
+                $notificationService->sendToRole(
+                    'lab',
+                    "New lab order placed for patient: {$patientName}",
+                    route('lab.index')
+                );
             }
 
             // Billing logic: find or create a bill for this appointment

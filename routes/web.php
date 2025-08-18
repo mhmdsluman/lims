@@ -67,7 +67,13 @@ Route::get('/', function () {
 Route::get('/dashboard', DashboardController::class)
     ->middleware(['auth', 'verified'])->name('dashboard');
 
+use App\Http\Controllers\NotificationController;
+
 Route::middleware('auth')->group(function () {
+
+    // Notifications
+    Route::get('/my-notifications', [NotificationController::class, 'getNotifications'])->name('notifications.index');
+    Route::post('/notifications/{notification}/mark-as-read', [NotificationController::class, 'markAsRead'])->name('notifications.markAsRead');
 
     // Profile
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
