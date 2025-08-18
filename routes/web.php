@@ -156,6 +156,11 @@ Route::delete('/billing/{bill}', [\App\Http\Controllers\BillController::class, '
 
     // Users & Admin
     Route::resource('users', UserController::class);
+
+    // Settings
+    Route::get('/settings', [\App\Http\Controllers\SettingsController::class, 'index'])->name('settings.index');
+    Route::post('/settings', [\App\Http\Controllers\SettingsController::class, 'update'])->name('settings.update');
+
     Route::get('/admin/audit-trail', [AuditLogController::class, 'index'])->name('audit.index');
     Route::resource('templates', TemplateController::class);
     Route::get('/admin/analytics', [AnalyticsController::class, 'index'])->name('analytics.index');

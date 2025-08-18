@@ -23,6 +23,7 @@ class DatabaseSeeder extends Seeder
         ]);
 
         $this->call([
+            SettingSeeder::class,
             BedSeeder::class,
             DiagnosisCodeSeeder::class,
             LabInventoryItemSeeder::class,

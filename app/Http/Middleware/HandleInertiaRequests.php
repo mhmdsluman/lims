@@ -34,6 +34,13 @@ class HandleInertiaRequests extends Middleware
                 }
                 return [];
             },
+            'settings' => [
+                'hospital_name' => config('settings.hospital_name'),
+                'hospital_short_name' => config('settings.hospital_short_name'),
+                'hospital_tagline' => config('settings.hospital_tagline'),
+                'allow_patient_registration' => config('settings.allow_patient_registration'),
+                'footer_text' => config('settings.footer_text'),
+            ],
             // Add this to handle flash messages
             'flash' => [
                 'success' => fn () => $request->session()->get('success'),
