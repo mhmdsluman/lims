@@ -104,12 +104,12 @@ class PatientController extends Controller
         $patient->uhid = 'HMS-A' . str_pad($patient->id, 7, '0', STR_PAD_LEFT);
         $patient->save();
 
-        if ($validatedData['insurance_provider_id'] && $validatedData['policy_number']) {
+        if (!empty($validatedData['insurance_provider_id']) && !empty($validatedData['policy_number'])) {
             $patient->insurancePolicies()->create([
                 'insurance_provider_id' => $validatedData['insurance_provider_id'],
                 'policy_number' => $validatedData['policy_number'],
-                'start_date' => $validatedData['start_date'],
-                'end_date' => $validatedData['end_date'],
+                'start_date' => $validatedData['start_date'] ?? null,
+                'end_date' => $validatedData['end_date'] ?? null,
             ]);
         }
 

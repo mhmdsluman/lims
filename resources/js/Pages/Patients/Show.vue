@@ -30,10 +30,10 @@ const showPreviousVitals = ref(false);
 // Print modal state (from code 2)
 const showPrintModal = ref(false);
 const pdfToPrint = ref('');
-const openPrintModal = (labResultId) => {
-  const url = safeRoute('print.lab-result', labResultId);
+const openPrintModal = (type, id) => {
+  const url = safeRoute('print.show', { type, id });
   if (!url) {
-    console.warn("Route 'print.lab-result' not found. Cannot open print modal.");
+    console.warn(`Route 'print.show' not found for type '${type}'. Cannot open print modal.`);
     return;
   }
   pdfToPrint.value = url;
@@ -175,7 +175,7 @@ const primaryAddress = computed(() => {
         <div class="flex items-center space-x-2">
           <Link :href="route('patients.edit', patient.id)" class="px-3 py-2 bg-yellow-500 text-white text-sm font-medium rounded-md hover:bg-yellow-600">Edit</Link>
 
-          <a v-if="safeRoute('print.patient', patient.id)" :href="safeRoute('print.patient', patient.id)" target="_blank" class="px-3 py-2 bg-gray-600 text-white text-sm font-medium rounded-md hover:bg-gray-700">Print Profile</a>
+          <a :href="route('print.show', { type: 'patient_summary', id: patient.id })" target="_blank" class="px-3 py-2 bg-gray-600 text-white text-sm font-medium rounded-md hover:bg-gray-700">Print Profile</a>
 
           <Link :href="route('patients.index')" class="px-3 py-2 text-sm text-blue-600 hover:underline">Back to Patients</Link>
         </div>
@@ -228,7 +228,7 @@ const primaryAddress = computed(() => {
                 </div>
 
                 <div class="flex gap-2">
-                  <button @click="openPrintModal(patient.latest_lab_id)" class="flex-1 px-3 py-2 bg-gray-600 text-white rounded-md text-sm hover:bg-gray-700">Print Latest Lab</button>
+                  <button @click="openPrintModal('lab_result', patient.latest_lab_id)" class="flex-1 px-3 py-2 bg-gray-600 text-white rounded-md text-sm hover:bg-gray-700">Print Latest Lab</button>
                   <button @click="showConfirmModal = true" class="px-3 py-2 bg-red-600 text-white rounded-md text-sm hover:bg-red-700">Delete</button>
                 </div>
               </div>
@@ -242,6 +242,7 @@ const primaryAddress = computed(() => {
             <h4 class="text-lg font-semibold">Radiology Reports</h4>
             <div class="flex items-center space-x-3">
               <span v-if="hasRecentRad && !showPreviousRadReports" class="h-3 w-3 rounded-full bg-red-600 block" title="New radiology order within 24 hours"></span>
+              <button v-if="latestRadReport?.radiology_report" @click="openPrintModal('radiology_report', latestRadReport.radiology_report.id)" class="text-sm bg-gray-600 text-white px-3 py-1 rounded hover:bg-gray-700">Print Latest</button>
               <button @click="showPreviousRadReports = !showPreviousRadReports" class="text-sm bg-gray-100 px-3 py-1 rounded hover:bg-gray-200">History</button>
             </div>
           </header>
@@ -259,7 +260,12 @@ const primaryAddress = computed(() => {
               <div v-for="item in previousRadReports" :key="item.radiology_report?.id || item.id" class="p-3 border rounded bg-white">
                 <div class="flex justify-between items-center mb-1">
                   <p class="font-medium">{{ item.service?.name || 'Radiology' }}</p>
-                  <p class="text-xs text-gray-500">{{ formatDateTime(item.radiology_report?.created_at || itemTimestamp(item)) }}</p>
+                  <div class="flex items-center space-x-2">
+                    <p class="text-xs text-gray-500">{{ formatDateTime(item.radiology_report?.created_at || itemTimestamp(item)) }}</p>
+                    <button v-if="item.radiology_report" @click="openPrintModal('radiology_report', item.radiology_report.id)" class="px-2 py-0.5 bg-gray-600 text-white text-xs rounded-md hover:bg-gray-700">
+                      Print
+                    </button>
+                  </div>
                 </div>
                 <p class="text-sm whitespace-pre-wrap">{{ item.radiology_report?.report_text || 'Report not ready' }}</p>
               </div>
@@ -318,12 +324,25 @@ const primaryAddress = computed(() => {
                         <p class="text-sm text-gray-500">{{ formatDateTime(item.lab_result.created_at) }}</p>
                       </div>
                       <!-- Print Button (opens modal) -->
-                      <button @click="openPrintModal(item.lab_result.id)" class="px-3 py-1 bg-gray-600 text-white text-xs rounded-md hover:bg-gray-700">
+                      <button @click="openPrintModal('lab_result', item.lab_result.id)" class="px-3 py-1 bg-gray-600 text-white text-xs rounded-md hover:bg-gray-700">
                         Print
                       </button>
                     </div>
                     <p class="text-lg font-mono bg-gray-100 p-2 rounded">{{ item.lab_result.result_value }} {{ item.lab_result.units || '' }}</p>
                     <p v-if="item.lab_result.notes" class="text-sm mt-2 whitespace-pre-wrap">{{ item.lab_result.notes }}</p>
+                  </div>
+                  <div v-else-if="item.service.department === 'Pharmacy'" class="p-4 border rounded-lg">
+                    <div class="flex justify-between items-center mb-2">
+                      <div>
+                        <p class="font-semibold">{{ item.service.name }}</p>
+                        <p class="text-sm text-gray-500">{{ formatDateTime(order.created_at) }}</p>
+                      </div>
+                      <a :href="route('print.show', { type: 'prescription', id: order.id })" target="_blank" class="px-3 py-1 bg-gray-600 text-white text-xs rounded-md hover:bg-gray-700">
+                        Print Prescription
+                      </a>
+                    </div>
+                    <p class="text-sm">Dosage: {{ item.dosage }}</p>
+                    <p class="text-sm">Instructions: {{ item.instructions }}</p>
                   </div>
                 </template>
               </template>

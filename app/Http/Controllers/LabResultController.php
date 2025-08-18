@@ -7,6 +7,7 @@ use App\Models\OrderItem;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -59,7 +60,9 @@ class LabResultController extends Controller
             }
         }
 
-        LabResult::create([
+        Log::info('Validated data:', $validated);
+
+        $labResult = LabResult::create([
             'order_item_id' => $orderItem->id,
             'result_value' => $validated['result_value'],
             'result_numeric' => $validated['result_numeric'] ?? null,
@@ -69,6 +72,8 @@ class LabResultController extends Controller
             'notes' => $validated['notes'],
             'entered_by_user_id' => Auth::id(),
         ]);
+
+        Log::info('Created lab result:', $labResult->toArray());
 
         $orderItem->update(['status' => 'Result Ready']);
 

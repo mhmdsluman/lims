@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Libraries\Ziggy;
+namespace App\libraries\Ziggy;
 
 use Illuminate\Routing\Route;
 use Illuminate\Support\Str;

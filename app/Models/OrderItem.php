@@ -11,7 +11,7 @@ class OrderItem extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['order_id', 'service_id', 'status', 'placer_order_number'];
+    protected $fillable = ['order_id', 'service_id', 'status', 'placer_order_number', 'dosage', 'instructions'];
 
     public function service(): BelongsTo { return $this->belongsTo(Service::class); }
     public function labResult(): HasOne { return $this->hasOne(LabResult::class); }

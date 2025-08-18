@@ -92,7 +92,7 @@ function voidBill() {
         </div>
 
         <div class="flex items-center space-x-2">
-          <a :href="route('print.bill-invoice', bill.id)" target="_blank" class="px-3 py-2 bg-gray-600 text-white rounded-md text-sm font-medium hover:bg-gray-700">
+          <a :href="route('print.show', { type: 'bill_invoice', id: bill.id })" target="_blank" class="px-3 py-2 bg-gray-600 text-white rounded-md text-sm font-medium hover:bg-gray-700">
             Print Invoice
           </a>
 

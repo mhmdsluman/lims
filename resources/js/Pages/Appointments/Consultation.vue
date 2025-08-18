@@ -76,26 +76,48 @@ onMounted(() => {
 
 // Orders form
 const ordersForm = useForm({
-  service_ids: [],
+  items: [],
 });
 
 // Apply an order set (adds all service IDs, avoiding duplicates)
 const applyOrderSet = (orderSet) => {
-  if (!orderSet || !Array.isArray(orderSet.items)) return;
-  const serviceIds = orderSet.items.map(i => i.service_id).filter(Boolean);
-  ordersForm.service_ids = [...new Set([...(ordersForm.service_ids || []), ...serviceIds])];
+    if (!orderSet || !Array.isArray(orderSet.items)) return;
+    const newItems = orderSet.items
+        .map(item => ({
+            service_id: item.service_id,
+            dosage: '',
+            instructions: ''
+        }))
+        .filter(newItem => !ordersForm.items.some(existing => existing.service_id === newItem.service_id) && !isServiceOrdered(newItem.service_id));
+
+    ordersForm.items.push(...newItems);
 };
 
 // Check if service already ordered
 const isServiceOrdered = (serviceId) => {
-  if (!props.orderedServiceIds) return false;
-  return props.orderedServiceIds.includes(serviceId);
+  if (props.orderedServiceIds && props.orderedServiceIds.includes(serviceId)) {
+      return true;
+  }
+  return ordersForm.items.some(item => item.service_id === serviceId);
 };
 
 // Count pending services in an order set
 const pendingCountForSet = (orderSet) => {
   if (!orderSet || !Array.isArray(orderSet.items)) return 0;
   return orderSet.items.filter(i => isServiceOrdered(i.service_id)).length;
+};
+
+const toggleService = (service) => {
+    const index = ordersForm.items.findIndex(item => item.service_id === service.id);
+    if (index > -1) {
+        ordersForm.items.splice(index, 1);
+    } else {
+        ordersForm.items.push({
+            service_id: service.id,
+            dosage: '',
+            instructions: ''
+        });
+    }
 };
 
 // Submit handlers
@@ -281,34 +303,50 @@ const formatDateTime = (value) => {
                   <div v-for="(group, department) in services" :key="department">
                     <h4 class="font-semibold mb-2">{{ department }}</h4>
                     <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
-                      <label
-                        v-for="service in group"
-                        :key="service.id"
-                        class="flex items-center space-x-3 p-2 border rounded-md"
-                        :class="{ 'cursor-not-allowed bg-gray-100 text-gray-500': service.formulary_status === 'Restricted' || isServiceOrdered(service.id) }"
-                      >
-                        <input
-                          type="checkbox"
-                          :value="service.id"
-                          v-model="ordersForm.service_ids"
-                          class="rounded border-gray-300 text-blue-600 shadow-sm"
-                          :disabled="service.formulary_status === 'Restricted' || isServiceOrdered(service.id)"
-                        />
-                        <span class="flex-grow">{{ service.name }}</span>
-                        <span v-if="isServiceOrdered(service.id)" class="text-xs text-blue-600 font-semibold">(Pending)</span>
-                        <span v-else-if="service.formulary_status" class="flex-shrink-0 flex items-center space-x-1">
-                          <span v-if="service.formulary_status === 'Restricted'" title="Restricted">🔒</span>
-                          <span
-                            class="h-2 w-2 rounded-full"
-                            :class="{
-                              'bg-green-500': service.formulary_status === 'Formulary',
-                              'bg-yellow-500': service.formulary_status === 'Non-Formulary',
-                              'bg-red-500': service.formulary_status === 'Restricted',
-                            }"
-                            :title="service.formulary_status"
-                          ></span>
-                        </span>
-                      </label>
+                      <div v-for="service in group" :key="service.id">
+                        <label
+                          class="flex items-center space-x-3 p-2 border rounded-md"
+                          :class="{ 'cursor-not-allowed bg-gray-100 text-gray-500': service.formulary_status === 'Restricted' || isServiceOrdered(service.id) }"
+                        >
+                          <input
+                            type="checkbox"
+                            :checked="ordersForm.items.some(item => item.service_id === service.id)"
+                            @change="toggleService(service)"
+                            class="rounded border-gray-300 text-blue-600 shadow-sm"
+                            :disabled="service.formulary_status === 'Restricted' || isServiceOrdered(service.id)"
+                          />
+                          <span class="flex-grow">{{ service.name }}</span>
+                          <span v-if="isServiceOrdered(service.id)" class="text-xs text-blue-600 font-semibold">(Pending)</span>
+                          <span v-else-if="service.formulary_status" class="flex-shrink-0 flex items-center space-x-1">
+                            <span v-if="service.formulary_status === 'Restricted'" title="Restricted">🔒</span>
+                            <span
+                              class="h-2 w-2 rounded-full"
+                              :class="{
+                                'bg-green-500': service.formulary_status === 'Formulary',
+                                'bg-yellow-500': service.formulary_status === 'Non-Formulary',
+                                'bg-red-500': service.formulary_status === 'Restricted',
+                              }"
+                              :title="service.formulary_status"
+                            ></span>
+                          </span>
+                        </label>
+                        <div v-if="service.department === 'Pharmacy' && ordersForm.items.some(item => item.service_id === service.id)" class="mt-2 pl-6">
+                          <div class="flex space-x-2">
+                            <input
+                              type="text"
+                              v-model="ordersForm.items.find(item => item.service_id === service.id).dosage"
+                              placeholder="Dosage (e.g., 1 tablet)"
+                              class="block w-full text-sm rounded-md shadow-sm border-gray-300"
+                            />
+                            <input
+                              type="text"
+                              v-model="ordersForm.items.find(item => item.service_id === service.id).instructions"
+                              placeholder="Instructions (e.g., twice daily)"
+                              class="block w-full text-sm rounded-md shadow-sm border-gray-300"
+                            />
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -316,7 +354,7 @@ const formatDateTime = (value) => {
                 <div class="flex justify-end mt-6">
                   <button
                     type="submit"
-                    :disabled="ordersForm.processing || (ordersForm.service_ids || []).length === 0"
+                    :disabled="ordersForm.processing || ordersForm.items.length === 0"
                     class="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50"
                   >
                     Place Selected Orders

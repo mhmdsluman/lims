@@ -186,9 +186,8 @@ Route::delete('/billing/{bill}', [\App\Http\Controllers\BillController::class, '
     Route::get('/ot/operative-notes/{operativeNote}/anesthesia/create', [AnesthesiaRecordController::class, 'create'])->name('anesthesia-records.create');
     Route::post('/ot/operative-notes/{operativeNote}/anesthesia', [AnesthesiaRecordController::class, 'store'])->name('anesthesia-records.store');
 
-    // Print Routes
-    Route::get('/print/lab-result/{labResult}', [PrintController::class, 'labResult'])->name('print.lab-result');
-    Route::get('/print/bill/{bill}', [PrintController::class, 'billInvoice'])->name('print.bill-invoice'); // <-- Add this
+    // Centralized Print Route
+    Route::get('/print/{type}/{id}', [PrintController::class, 'show'])->name('print.show');
 
     // Patient Portal
     Route::prefix('portal')->name('portal.')->group(function () {

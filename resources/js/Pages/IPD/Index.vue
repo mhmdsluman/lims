@@ -50,6 +50,9 @@ const dischargePatient = (admissionId) => {
                                             <Link :href="route('mar.show', bed.current_admission.id)" class="inline-block px-3 py-1 bg-indigo-500 text-white text-xs rounded hover:bg-indigo-600 w-full mb-1">
                                                 View MAR
                                             </Link>
+                                            <a :href="route('print.show', { type: 'admission_summary', id: bed.current_admission.id })" target="_blank" class="inline-block px-3 py-1 bg-gray-600 text-white text-xs rounded hover:bg-gray-700 w-full mb-1">
+                                                Print Summary
+                                            </a>
                                             <button @click="dischargePatient(bed.current_admission.id)" class="inline-block px-3 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600 w-full">
                                                 Discharge
                                             </button>

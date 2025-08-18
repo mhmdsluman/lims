@@ -25,4 +25,9 @@ class Order extends Model
     {
         return $this->belongsTo(Patient::class);
     }
+
+    public function prescriber(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'ordered_by_user_id');
+    }
 }

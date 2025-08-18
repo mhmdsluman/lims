@@ -32,18 +32,21 @@ class OrderController extends Controller
     public function store(Request $request, Appointment $appointment)
     {
         $validated = $request->validate([
-            'service_ids'   => 'required|array|min:1',
-            'service_ids.*' => 'required|exists:services,id',
+            'items' => 'required|array|min:1',
+            'items.*.service_id' => 'required|exists:services,id',
+            'items.*.dosage' => 'nullable|string|max:255',
+            'items.*.instructions' => 'nullable|string|max:255',
         ]);
 
         // Load the selected services
-        $services = Service::find($validated['service_ids']);
+        $serviceIds = collect($validated['items'])->pluck('service_id');
+        $services = Service::find($serviceIds);
 
         // Restriction check (formulary)
         foreach ($services as $service) {
             if ($service->formulary_status === 'Restricted') {
                 throw ValidationException::withMessages([
-                    'service_ids' => "The medication/service '{$service->name}' is restricted."
+                    'items' => "The medication/service '{$service->name}' is restricted."
                 ]);
             }
         }
@@ -58,11 +61,12 @@ class OrderController extends Controller
             ]);
 
             // Create order items and handle inpatient pharmacy auto-MAR population
-            foreach ($validated['service_ids'] as $serviceId) {
+            foreach ($validated['items'] as $itemData) {
                 $item = $order->items()->create([
-                    'service_id'          => $serviceId,
-                    'status'              => 'Pending',
-                    // include order id to placer string to reduce collisions
+                    'service_id' => $itemData['service_id'],
+                    'status' => 'Pending',
+                    'dosage' => $itemData['dosage'] ?? null,
+                    'instructions' => $itemData['instructions'] ?? null,
                     'placer_order_number' => 'ORD-' . Str::upper(Str::random(5)) . '-' . $order->id,
                 ]);
 
