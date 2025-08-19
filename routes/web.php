@@ -161,11 +161,14 @@ Route::middleware('auth')->group(function () {
     Route::get('/admissions/{admission}/shift-handover/create', [ShiftHandoverController::class, 'create'])->name('shift-handovers.create');
     Route::post('/admissions/{admission}/shift-handover', [ShiftHandoverController::class, 'store'])->name('shift-handovers.store');
 
+use App\Http\Controllers\InsuranceClaimsController;
+
     // Users & Admin
     Route::resource('users', UserController::class);
     Route::resource('service-commissions', ServiceCommissionController::class)->only(['index', 'create', 'store', 'destroy']);
     Route::resource('doctor-schedules', DoctorScheduleController::class)->only(['index', 'create', 'store', 'destroy']);
     Route::resource('insurance-plans', InsurancePlanController::class);
+    Route::get('/insurance-claims', [InsuranceClaimsController::class, 'index'])->name('insurance-claims.index');
 
     // Settings
     Route::get('/settings', [SettingsController::class, 'index'])->name('settings.index');
