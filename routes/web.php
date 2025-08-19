@@ -17,6 +17,7 @@ use App\Http\Controllers\FormularyController;
 use App\Http\Controllers\InsuranceContractController;
 use App\Http\Controllers\InsurancePolicyController;
 use App\Http\Controllers\InsuranceProviderController;
+use App\Http\Controllers\InsurancePlanController;
 use App\Http\Controllers\InventoryItemController;
 use App\Http\Controllers\LabInventoryController;
 use App\Http\Controllers\LabController;
@@ -172,6 +173,7 @@ Route::delete('/billing/{bill}', [\App\Http\Controllers\BillController::class, '
     Route::resource('users', UserController::class);
     Route::resource('service-commissions', ServiceCommissionController::class)->only(['index', 'create', 'store', 'destroy']);
     Route::resource('doctor-schedules', DoctorScheduleController::class)->only(['index', 'create', 'store', 'destroy']);
+    Route::resource('insurance-plans', InsurancePlanController::class);
 
     // Settings
     Route::get('/settings', [\App\Http\Controllers\SettingsController::class, 'index'])->name('settings.index');

@@ -4,12 +4,25 @@ import { ref, watch, onMounted } from 'vue';
 import { Country, State, City } from 'country-state-city';
 import axios from 'axios';
 
+import { computed } from 'vue';
+
 const props = defineProps({
     form: Object,
     providers: {
         type: Array,
         default: () => [],
     },
+    plans: {
+        type: Array,
+        default: () => [],
+    },
+});
+
+const filteredPlans = computed(() => {
+    if (!props.form.insurance_provider_id) {
+        return [];
+    }
+    return props.plans.filter(plan => plan.insurance_provider_id === props.form.insurance_provider_id);
 });
 
 // Duplicate check state
@@ -196,6 +209,13 @@ watch(selectedState, (state) => {
                     <select v-model="form.insurance_provider_id" class="mt-1 block w-full">
                         <option :value="null">Self-Pay / No Insurance</option>
                         <option v-for="provider in props.providers" :key="provider.id" :value="provider.id">{{ provider.name }}</option>
+                    </select>
+                </div>
+                <div v-if="form.insurance_provider_id" class="md:col-span-2">
+                    <label class="block font-medium text-sm">Insurance Plan</label>
+                    <select v-model="form.insurance_plan_id" class="mt-1 block w-full" :disabled="!filteredPlans.length">
+                        <option :value="null">Select a plan</option>
+                        <option v-for="plan in filteredPlans" :key="plan.id" :value="plan.id">{{ plan.name }}</option>
                     </select>
                 </div>
                 <div v-if="form.insurance_provider_id">

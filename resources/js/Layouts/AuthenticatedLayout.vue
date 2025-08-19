@@ -137,6 +137,10 @@ const switchLanguage = (lang) => {
                     <svg class="h-6 w-6 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 20.417l5.618-5.618a12.02 12.02 0 008.618-3.04A11.955 11.955 0 0121 12a11.955 11.955 0 01-2.618-6.016z"/></svg>
                     <span class="ml-3 whitespace-nowrap transition-opacity duration-200" :class="isSidebarCollapsed ? 'opacity-0' : 'opacity-100'">Insurance Providers</span>
                 </Link>
+                <Link v-if="$page.props.auth.user?.role === 'admin'" :href="route('insurance-plans.index')" class="flex items-center px-6 py-3 text-gray-700 hover:bg-gray-200">
+                    <svg class="h-6 w-6 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 20.417l5.618-5.618a12.02 12.02 0 008.618-3.04A11.955 11.955 0 0121 12a11.955 11.955 0 01-2.618-6.016z" /></svg>
+                    <span class="ml-3 whitespace-nowrap transition-opacity duration-200" :class="isSidebarCollapsed ? 'opacity-0' : 'opacity-100'">Insurance Plans</span>
+                </Link>
                 <Link v-if="$page.props.auth.user?.role === 'admin'" :href="route('analytics.index')" class="flex items-center px-6 py-3 text-gray-700 hover:bg-gray-200">
                     <svg class="h-6 w-6 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
                     <span class="ml-3 whitespace-nowrap transition-opacity duration-200" :class="isSidebarCollapsed ? 'opacity-0' : 'opacity-100'">Analytics</span>

@@ -13,6 +13,7 @@ class InsurancePolicy extends Model
     protected $fillable = [
         'patient_id',
         'insurance_provider_id',
+        'insurance_plan_id',
         'policy_number',
         'group_number',
         'start_date',
@@ -34,5 +35,10 @@ class InsurancePolicy extends Model
     public function provider(): BelongsTo
     {
         return $this->belongsTo(InsuranceProvider::class, 'insurance_provider_id');
+    }
+
+    public function plan(): BelongsTo
+    {
+        return $this->belongsTo(InsurancePlan::class);
     }
 }

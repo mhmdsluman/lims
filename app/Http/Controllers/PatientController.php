@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Claim; // <-- Add this import
+use App\Models\InsurancePlan;
 use App\Models\InsuranceProvider;
 use App\Models\Patient;
 use Illuminate\Http\Request;
@@ -44,6 +45,7 @@ class PatientController extends Controller
     {
         return Inertia::render('Patients/Create', [
             'providers' => InsuranceProvider::where('is_active', true)->orderBy('name')->get(),
+            'plans' => InsurancePlan::where('is_active', true)->orderBy('name')->get(),
         ]);
     }
 
@@ -69,6 +71,7 @@ class PatientController extends Controller
             'addresses.*.postal_code' => 'nullable|string|max:255',
             'addresses.*.country' => 'required|string|max:255',
             'insurance_provider_id' => 'nullable|exists:insurance_providers,id',
+            'insurance_plan_id' => 'nullable|exists:insurance_plans,id',
             'policy_number' => 'nullable|string|max:255',
             'start_date' => 'nullable|date',
             'end_date' => 'nullable|date|after_or_equal:start_date',
@@ -110,6 +113,7 @@ class PatientController extends Controller
         if (!empty($validatedData['insurance_provider_id']) && !empty($validatedData['policy_number'])) {
             $patient->insurancePolicies()->create([
                 'insurance_provider_id' => $validatedData['insurance_provider_id'],
+                'insurance_plan_id' => $validatedData['insurance_plan_id'],
                 'policy_number' => $validatedData['policy_number'],
                 'start_date' => $validatedData['start_date'] ?? null,
                 'end_date' => $validatedData['end_date'] ?? null,
@@ -149,6 +153,7 @@ class PatientController extends Controller
         return Inertia::render('Patients/Edit', [
             'patient' => $patient,
             'providers' => InsuranceProvider::where('is_active', true)->orderBy('name')->get(),
+            'plans' => InsurancePlan::where('is_active', true)->orderBy('name')->get(),
         ]);
     }
 
@@ -171,6 +176,7 @@ class PatientController extends Controller
             'addresses.*.street' => 'required|string|max:255',
             // ... other address fields
             'insurance_provider_id' => 'nullable|exists:insurance_providers,id',
+            'insurance_plan_id' => 'nullable|exists:insurance_plans,id',
             'policy_number' => 'nullable|string|max:255',
             'start_date' => 'nullable|date',
             'end_date' => 'nullable|date|after_or_equal:start_date',
@@ -218,6 +224,7 @@ class PatientController extends Controller
                 ['is_primary' => true],
                 [
                     'insurance_provider_id' => $request->input('insurance_provider_id'),
+                    'insurance_plan_id' => $request->input('insurance_plan_id'),
                     'policy_number' => $request->input('policy_number'),
                     'start_date' => $request->input('start_date'),
                     'end_date' => $request->input('end_date'),
