@@ -6,6 +6,7 @@ use App\Models\Appointment;
 use App\Models\Bill;
 use App\Models\Order;
 use App\Models\Service;
+use App\Services\BillingService;
 use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -30,7 +31,7 @@ class OrderController extends Controller
      *
      * @throws \Illuminate\Validation\ValidationException
      */
-    public function store(Request $request, Appointment $appointment, NotificationService $notificationService)
+    public function store(Request $request, Appointment $appointment, NotificationService $notificationService, BillingService $billingService)
     {
         $validated = $request->validate([
             'items' => 'required|array|min:1',
@@ -52,7 +53,7 @@ class OrderController extends Controller
             }
         }
 
-        DB::transaction(function () use ($validated, $appointment, $services, $notificationService) {
+        DB::transaction(function () use ($validated, $appointment, $services, $notificationService, $billingService) {
             // Create the clinical order
             $order = Order::create([
                 'patient_id'         => $appointment->patient_id,
@@ -108,40 +109,13 @@ class OrderController extends Controller
             );
 
             // Add newly ordered services to the bill.
-            // Prefer high-level addService() if model provides it, otherwise create bill items directly.
             foreach ($services as $service) {
-                if (method_exists($bill, 'addService') && is_callable([$bill, 'addService'])) {
-                    // If Bill::addService handles quantity/pricing/relationships internally
-                    $bill->addService($service);
-                } elseif (method_exists($bill, 'items')) {
-                    // Fallback: create bill item record assuming bill->items() relation exists
-                    $unitPrice = $service->price ?? 0;
-                    $bill->items()->create([
-                        'service_id'  => $service->id,
-                        'quantity'    => 1,
-                        'unit_price'  => $unitPrice,
-                        'total_price' => $unitPrice * 1,
-                    ]);
-                } else {
-                    // As a last resort, accumulate into total_amount (will be persisted below)
-                    $bill->total_amount += ($service->price ?? 0);
-                }
+                $bill->addService($service);
             }
 
-            // Recalculate totals: prefer model's recalculateTotals() if available
-            if (method_exists($bill, 'recalculateTotals') && is_callable([$bill, 'recalculateTotals'])) {
-                $bill->recalculateTotals();
-            } else {
-                // Compute sum from related bill items if relation exists
-                if (method_exists($bill, 'items')) {
-                    $sum = (float) $bill->items()->sum('total_price');
-                    $bill->total_amount = $sum;
-                    $bill->save();
-                } else {
-                    // If no items relation, ensure we persist whatever total_amount we have
-                    $bill->save();
-                }
-            }
+            // Recalculate totals and apply insurance rules
+            $billingService->calculateBill($bill);
+
 
             // If the bill was previously marked Paid or Void, reset to Unpaid because new items were added
             if (in_array($bill->status, ['Paid', 'Void'])) {

@@ -15,15 +15,16 @@ use App\Http\Controllers\DoctorScheduleController;
 use App\Http\Controllers\EmergencyController;
 use App\Http\Controllers\FormularyController;
 use App\Http\Controllers\InsuranceContractController;
+use App\Http\Controllers\InsurancePlanController;
 use App\Http\Controllers\InsurancePolicyController;
 use App\Http\Controllers\InsuranceProviderController;
-use App\Http\Controllers\InsurancePlanController;
 use App\Http\Controllers\InventoryItemController;
 use App\Http\Controllers\LabInventoryController;
 use App\Http\Controllers\LabController;
 use App\Http\Controllers\LabResultController;
 use App\Http\Controllers\MedicationAdministrationController;
 use App\Http\Controllers\MessageController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\NursingNoteController;
 use App\Http\Controllers\NursingStationController;
 use App\Http\Controllers\OperatingTheaterController;
@@ -32,6 +33,7 @@ use App\Http\Controllers\OrderController;
 use App\Http\Controllers\OrderSetController;
 use App\Http\Controllers\PatientController;
 use App\Http\Controllers\PatientPortalController;
+use App\Http\Controllers\PayrollController;
 use App\Http\Controllers\PharmacyController;
 use App\Http\Controllers\PharmacyDispensationController;
 use App\Http\Controllers\PrintController;
@@ -39,11 +41,11 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RadiologyController;
 use App\Http\Controllers\RadiologyReportController;
 use App\Http\Controllers\RadiologyScheduleController;
-use App\Http\Controllers\ServiceController;
+use App\Http\Controllers\ReceptionController;
 use App\Http\Controllers\ServiceCommissionController;
+use App\Http\Controllers\ServiceController;
+use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\ShiftHandoverController;
-use App\Http\Controllers\NotificationController;
-use App\Http\Controllers\PayrollController;
 use App\Http\Controllers\TemplateController;
 use App\Http\Controllers\TestCatalogueController;
 use App\Http\Controllers\UserController;
@@ -81,10 +83,10 @@ Route::middleware('auth')->group(function () {
     // Profile
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
     // Reception
-    Route::get('/reception', [\App\Http\Controllers\ReceptionController::class, 'index'])->name('reception.index');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    Route::get('/reception', [ReceptionController::class, 'index'])->name('reception.index');
 
     // Patients
     Route::get('/patients/search', [PatientController::class, 'search'])->name('patients.search');
@@ -136,20 +138,10 @@ Route::middleware('auth')->group(function () {
     // Billing Routes (merged)
     Route::get('/billing', [BillController::class, 'index'])->name('billing.index');
     Route::get('/billing/{bill}', [BillController::class, 'show'])->name('bills.show');
-    Route::get('/billing/{bill}', [BillController::class, 'show'])
-    ->name('billing.show')
-    ->middleware('auth');
-    Route::post('/billing/{bill}/discount', [BillController::class, 'applyDiscount'])
-    ->name('billing.discount')
-    ->middleware('auth');
     Route::post('/appointments/{appointment}/bills', [BillController::class, 'store'])->name('bills.store');
     Route::patch('/billing/{bill}/payment', [BillController::class, 'recordPayment'])->name('bills.recordPayment');
     Route::patch('/billing/{bill}/discount', [BillController::class, 'applyDiscount'])->name('bills.applyDiscount');
     Route::delete('/billing/{bill}', [BillController::class, 'destroy'])->name('bills.destroy');
-
-    // routes/web.php
-Route::post('/billing/{bill}/pay', [\App\Http\Controllers\BillController::class, 'recordPayment'])->name('billing.pay');
-Route::delete('/billing/{bill}', [\App\Http\Controllers\BillController::class, 'destroy'])->name('billing.destroy');
 
     // IPD & Admissions
     Route::get('/ipd', [BedController::class, 'index'])->name('ipd.index');
@@ -176,8 +168,8 @@ Route::delete('/billing/{bill}', [\App\Http\Controllers\BillController::class, '
     Route::resource('insurance-plans', InsurancePlanController::class);
 
     // Settings
-    Route::get('/settings', [\App\Http\Controllers\SettingsController::class, 'index'])->name('settings.index');
-    Route::post('/settings', [\App\Http\Controllers\SettingsController::class, 'update'])->name('settings.update');
+    Route::get('/settings', [SettingsController::class, 'index'])->name('settings.index');
+    Route::post('/settings', [SettingsController::class, 'update'])->name('settings.update');
 
     // Payroll
     Route::get('/payroll', [PayrollController::class, 'index'])->name('payroll.index');

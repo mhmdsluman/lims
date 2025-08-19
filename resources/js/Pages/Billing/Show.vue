@@ -122,10 +122,12 @@ function voidBill() {
               }">{{ bill.status }}</span>
             </div>
 
-            <div class="flex justify-between mt-2"><span class="font-medium">Total Amount:</span><span>${{ (bill.total_amount ?? 0).toFixed(2) }}</span></div>
-            <div class="flex justify-between mt-2"><span class="font-medium">Patient Co-Pay:</span><span>${{ (bill.patient_co_pay ?? 0).toFixed(2) }}</span></div>
-            <div class="flex justify-between mt-2"><span class="font-medium">Discount Applied:</span><span>${{ (bill.discount_amount ?? 0).toFixed(2) }}</span></div>
-            <div class="flex justify-between mt-2"><span class="font-medium">Balance Due:</span><span>${{ balanceDue.toFixed(2) }}</span></div>
+            <div class="flex justify-between mt-2"><span class="font-medium">Total Billed Amount:</span><span>${{ (bill.total_amount ?? 0).toFixed(2) }}</span></div>
+            <div class="flex justify-between mt-2"><span class="font-medium text-blue-600">Insurance Coverage:</span><span class="text-blue-600">-${{ (bill.insurance_amount ?? 0).toFixed(2) }}</span></div>
+            <div class="flex justify-between mt-2 border-t pt-2"><span class="font-medium">Sub-Total (Patient Due):</span><span>${{ (bill.patient_co_pay ?? 0).toFixed(2) }}</span></div>
+            <div class="flex justify-between mt-2"><span class="font-medium text-yellow-600">Discount Applied:</span><span class="text-yellow-600">-${{ (bill.discount_amount ?? 0).toFixed(2) }}</span></div>
+            <div class="flex justify-between mt-2"><span class="font-medium text-green-600">Amount Paid:</span><span class="text-green-600">-${{ (bill.paid_amount ?? 0).toFixed(2) }}</span></div>
+            <div class="flex justify-between mt-2 border-t-2 border-black pt-2"><span class="font-bold text-lg">Final Balance Due:</span><span class="font-bold text-lg">${{ balanceDue.toFixed(2) }}</span></div>
           </div>
 
           <div class="mb-6">
@@ -134,17 +136,17 @@ function voidBill() {
               <thead class="bg-gray-100">
                 <tr>
                   <th class="border px-3 py-2 text-left">Service</th>
-                  <th class="border px-3 py-2">Qty</th>
-                  <th class="border px-3 py-2">Unit Price</th>
                   <th class="border px-3 py-2">Total Price</th>
+                  <th class="border px-3 py-2 text-blue-600">Insurance Coverage</th>
+                  <th class="border px-3 py-2">Patient Co-Pay</th>
                 </tr>
               </thead>
               <tbody>
                 <tr v-for="item in bill.items" :key="item.id">
                   <td class="border px-3 py-2">{{ item.service.name }}</td>
-                  <td class="border px-3 py-2 text-center">{{ item.quantity }}</td>
-                  <td class="border px-3 py-2 text-right">${{ item.unit_price.toFixed(2) }}</td>
                   <td class="border px-3 py-2 text-right">${{ item.total_price.toFixed(2) }}</td>
+                  <td class="border px-3 py-2 text-right text-blue-600">${{ (item.insurance_amount ?? 0).toFixed(2) }}</td>
+                  <td class="border px-3 py-2 text-right">${{ (item.patient_co_pay ?? 0).toFixed(2) }}</td>
                 </tr>
               </tbody>
             </table>
