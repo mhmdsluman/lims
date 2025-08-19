@@ -14,6 +14,7 @@ use App\Http\Controllers\DiagnosisCodeController;
 use App\Http\Controllers\DoctorScheduleController;
 use App\Http\Controllers\EmergencyController;
 use App\Http\Controllers\FormularyController;
+use App\Http\Controllers\InsuranceClaimsController;
 use App\Http\Controllers\InsuranceContractController;
 use App\Http\Controllers\InsurancePlanController;
 use App\Http\Controllers\InsurancePolicyController;
@@ -119,7 +120,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/lab/orders/{orderItem}/result', [LabResultController::class, 'store'])->name('lab-results.store');
     Route::patch('/lab/results/{labResult}/verify', [LabResultController::class, 'verify'])->name('lab-results.verify');
 
-      // Lab Inventory Route (for Lab/Admins)
+    // Lab Inventory Route (for Lab/Admins)
     Route::resource('lab-inventory', LabInventoryController::class)->except(['show']);
 
     // Pharmacy
@@ -160,8 +161,6 @@ Route::middleware('auth')->group(function () {
     Route::post('/admissions/{admission}/care-plan', [CarePlanController::class, 'store'])->name('care-plans.store');
     Route::get('/admissions/{admission}/shift-handover/create', [ShiftHandoverController::class, 'create'])->name('shift-handovers.create');
     Route::post('/admissions/{admission}/shift-handover', [ShiftHandoverController::class, 'store'])->name('shift-handovers.store');
-
-use App\Http\Controllers\InsuranceClaimsController;
 
     // Users & Admin
     Route::resource('users', UserController::class);
