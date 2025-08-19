@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -56,6 +57,7 @@ class PatientController extends Controller
             'last_name' => 'required|string|max:100',
             'date_of_birth' => 'required|date|before:today',
             'gender' => 'required|string',
+            'blood_group' => 'nullable|string|max:3',
             'primary_phone_country_code' => 'required|string|max:5',
             'primary_phone' => 'required|string|max:20',
             'email' => ['nullable', 'email', Rule::unique('patients')->whereNull('deleted_at')],
@@ -91,6 +93,7 @@ class PatientController extends Controller
             'last_name' => $validatedData['last_name'],
             'date_of_birth' => $validatedData['date_of_birth'],
             'gender' => $validatedData['gender'],
+            'blood_group' => $validatedData['blood_group'] ?? null,
             'primary_phone_country_code' => $countryCode,
             'primary_phone' => $fullPhoneNumber,
             'email' => $validatedData['email'],
@@ -159,6 +162,8 @@ class PatientController extends Controller
             'last_name' => 'required|string|max:100',
             'date_of_birth' => 'required|date|before:today',
             'gender' => 'required|string',
+            'blood_group' => 'nullable|string|max:3',
+            'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'primary_phone_country_code' => 'required|string|max:5',
             'primary_phone' => 'required|string|max:20',
             'email' => ['nullable', 'email', Rule::unique('patients')->ignore($patient->id)->whereNull('deleted_at')],
@@ -184,17 +189,29 @@ class PatientController extends Controller
             }
         }
 
-        $patient->update([
+        $updateData = [
             'first_name' => $validatedData['first_name'],
             'last_name' => $validatedData['last_name'],
             'date_of_birth' => $validatedData['date_of_birth'],
             'gender' => $validatedData['gender'],
+            'blood_group' => $validatedData['blood_group'],
             'primary_phone_country_code' => $countryCode,
             'primary_phone' => $fullPhoneNumber,
             'email' => $validatedData['email'],
             'addresses' => $addresses,
             'updated_by_user_id' => Auth::id(),
-        ]);
+        ];
+
+        if ($request->hasFile('photo')) {
+            // Delete old photo if it exists
+            if ($patient->photo_capture_path) {
+                Storage::disk('public')->delete($patient->photo_capture_path);
+            }
+            $path = $request->file('photo')->store('photos', 'public');
+            $updateData['photo_capture_path'] = $path;
+        }
+
+        $patient->update($updateData);
 
         if ($request->input('insurance_provider_id') && $request->input('policy_number')) {
             $patient->insurancePolicies()->updateOrCreate(

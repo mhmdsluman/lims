@@ -194,7 +194,8 @@ const primaryAddress = computed(() => {
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
               <!-- Left: Avatar + quick identifiers -->
               <div class="flex items-center gap-4">
-                <div class="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center text-2xl font-semibold text-gray-600">
+                <img v-if="patient.photo_capture_path" :src="`/storage/${patient.photo_capture_path}`" class="w-24 h-24 bg-gray-100 rounded-full object-cover">
+                <div v-else class="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center text-2xl font-semibold text-gray-600">
                   {{ (patient.first_name || '').charAt(0) }}{{ (patient.last_name || '').charAt(0) }}
                 </div>
                 <div>
@@ -203,6 +204,7 @@ const primaryAddress = computed(() => {
                   <div class="mt-2 flex items-center gap-2">
                     <span class="text-sm px-2 py-1 bg-gray-100 rounded">Age: {{ patient.age || 'N/A' }}</span>
                     <span class="text-sm px-2 py-1 bg-gray-100 rounded">Gender: {{ patient.gender || 'N/A' }}</span>
+                    <span class="text-sm px-2 py-1 bg-red-100 text-red-800 rounded">Blood: {{ patient.blood_group || 'N/A' }}</span>
                     <span v-if="hasRecentLab || hasRecentRad || hasRecentNursing || hasRecentVitals" class="text-sm px-2 py-1 bg-red-50 text-red-700 rounded">New updates</span>
                   </div>
                 </div>
