@@ -38,7 +38,10 @@ use App\Http\Controllers\RadiologyController;
 use App\Http\Controllers\RadiologyReportController;
 use App\Http\Controllers\RadiologyScheduleController;
 use App\Http\Controllers\ServiceController;
+use App\Http\Controllers\ServiceCommissionController;
 use App\Http\Controllers\ShiftHandoverController;
+use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\PayrollController;
 use App\Http\Controllers\TemplateController;
 use App\Http\Controllers\TestCatalogueController;
 use App\Http\Controllers\UserController;
@@ -67,8 +70,6 @@ Route::get('/', function () {
 Route::get('/dashboard', DashboardController::class)
     ->middleware(['auth', 'verified'])->name('dashboard');
 
-use App\Http\Controllers\NotificationController;
-
 Route::middleware('auth')->group(function () {
 
     // Notifications
@@ -78,9 +79,13 @@ Route::middleware('auth')->group(function () {
     // Profile
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+
+    // Reception
+    Route::get('/reception', [\App\Http\Controllers\ReceptionController::class, 'index'])->name('reception.index');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
     // Patients
+    Route::get('/patients/search', [PatientController::class, 'search'])->name('patients.search');
     Route::resource('patients', PatientController::class);
     Route::post('/patients/check-duplicate', [PatientController::class, 'checkDuplicate'])->name('patients.checkDuplicate');
 
@@ -88,6 +93,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/appointments', [AppointmentController::class, 'index'])->name('appointments.index');
     Route::post('/appointments', [AppointmentController::class, 'store'])->name('appointments.store');
     Route::patch('/appointments/{appointment}/status', [AppointmentController::class, 'updateStatus'])->name('appointments.updateStatus');
+    Route::patch('/appointments/{appointment}/check-in', [AppointmentController::class, 'checkIn'])->name('appointments.checkIn');
 
     // Vitals & Clinical Notes
     Route::get('/appointments/{appointment}/vitals/create', [VitalController::class, 'create'])->name('vitals.create');
@@ -162,10 +168,14 @@ Route::delete('/billing/{bill}', [\App\Http\Controllers\BillController::class, '
 
     // Users & Admin
     Route::resource('users', UserController::class);
+    Route::resource('service-commissions', ServiceCommissionController::class)->only(['index', 'create', 'store', 'destroy']);
 
     // Settings
     Route::get('/settings', [\App\Http\Controllers\SettingsController::class, 'index'])->name('settings.index');
     Route::post('/settings', [\App\Http\Controllers\SettingsController::class, 'update'])->name('settings.update');
+
+    // Payroll
+    Route::get('/payroll', [PayrollController::class, 'index'])->name('payroll.index');
 
     Route::get('/admin/audit-trail', [AuditLogController::class, 'index'])->name('audit.index');
     Route::resource('templates', TemplateController::class);

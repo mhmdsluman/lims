@@ -60,6 +60,7 @@ class UserController extends Controller
             'email' => ['required', 'email', Rule::unique('users')->ignore($user->id)],
             'role' => ['required', Rule::in(['admin', 'clinician', 'clerk', 'lab', 'pharmacy', 'radiology', 'patient', 'nurse', 'ot_manager'])],
             'speciality' => 'nullable|string|max:255',
+            'salary' => 'nullable|numeric|min:0',
             'password' => ['nullable', 'confirmed', Rules\Password::defaults()],
         ]);
 
@@ -67,6 +68,7 @@ class UserController extends Controller
         $user->email = $request->email;
         $user->role = $request->role;
         $user->speciality = $request->speciality;
+        $user->salary = $request->salary;
 
         if ($request->password) {
             $user->password = Hash::make($request->password);

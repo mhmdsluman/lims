@@ -241,4 +241,25 @@ class PatientController extends Controller
 
         return response()->json(['is_duplicate' => $query->exists()]);
     }
+
+    /**
+     * Search for patients by name or UHID.
+     */
+    public function search(Request $request)
+    {
+        $query = $request->input('q', '');
+
+        if (strlen($query) < 2) {
+            return response()->json([]);
+        }
+
+        $patients = Patient::where('first_name', 'like', "%{$query}%")
+            ->orWhere('last_name', 'like', "%{$query}%")
+            ->orWhere('uhid', 'like', "%{$query}%")
+            ->select(['id', 'first_name', 'last_name', 'uhid', 'date_of_birth'])
+            ->take(10)
+            ->get();
+
+        return response()->json($patients);
+    }
 }

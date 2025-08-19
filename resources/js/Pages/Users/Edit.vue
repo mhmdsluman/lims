@@ -19,6 +19,7 @@ const form = useForm({
     name: props.user.name,
     email: props.user.email,
     role: props.user.role,
+    salary: props.user.salary,
     speciality: props.user.speciality,
     password: '',
     password_confirmation: '',
@@ -85,6 +86,10 @@ const submit = () => {
                                     <select id="role" v-model="form.role" class="block mt-1 w-full rounded-md" required>
                                         <option v-for="role in roles" :key="role" :value="role">{{ role.toUpperCase() }}</option>
                                     </select>
+                                </div>
+                                <div>
+                                    <label for="salary" class="block font-medium text-sm text-gray-700">Base Salary</label>
+                                    <input id="salary" type="number" step="0.01" v-model="form.salary" class="block mt-1 w-full rounded-md">
                                 </div>
                                 <div v-if="['clinician', 'nurse', 'lab', 'radiology', 'ot_manager', 'pharmacy'].includes(form.role)">
                                     <label for="speciality" class="block font-medium text-sm text-gray-700">Speciality</label>

@@ -131,4 +131,17 @@ class AppointmentController extends Controller
 
         return redirect()->route('portal.appointments')->with('success', 'Appointment requested successfully. You will be notified once it is confirmed.');
     }
+
+    /**
+     * Mark an appointment as "Arrived" (Check-In).
+     */
+    public function checkIn(Appointment $appointment)
+    {
+        if ($appointment->status === 'Scheduled') {
+            $appointment->update(['status' => 'Arrived']);
+            return redirect()->back()->with('success', 'Patient checked in successfully.');
+        }
+
+        return redirect()->back()->with('error', 'Appointment cannot be checked in.');
+    }
 }
