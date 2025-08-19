@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Appointment;
 use App\Models\Bill;
+use App\Models\DoctorSchedule;
 use App\Models\Patient;
 use App\Models\Service;
 use App\Models\User;
@@ -31,10 +32,13 @@ class AppointmentController extends Controller
             ->orderBy('appointment_time')
             ->get();
 
+        $schedules = DoctorSchedule::all();
+
         return Inertia::render('Appointments/Index', [
             'appointments' => $appointments,
             'patients' => Patient::orderBy('first_name')->get(['id', 'first_name', 'last_name', 'date_of_birth']),
             'clinicians' => User::where('role', 'clinician')->orderBy('name')->get(['id', 'name']),
+            'schedules' => $schedules,
             'currentDate' => [
                 'month' => $date->month,
                 'year' => $date->year,
@@ -143,5 +147,28 @@ class AppointmentController extends Controller
         }
 
         return redirect()->back()->with('error', 'Appointment cannot be checked in.');
+    }
+
+    /**
+     * Search for appointments by patient name.
+     */
+    public function search(Request $request)
+    {
+        $query = $request->input('q', '');
+
+        if (strlen($query) < 2) {
+            return response()->json([]);
+        }
+
+        $appointments = Appointment::with('patient')
+            ->whereHas('patient', function ($q) use ($query) {
+                $q->where('first_name', 'like', "%{$query}%")
+                  ->orWhere('last_name', 'like', "%{$query}%");
+            })
+            ->select('id', 'patient_id', 'appointment_time')
+            ->take(10)
+            ->get();
+
+        return response()->json($appointments);
     }
 }

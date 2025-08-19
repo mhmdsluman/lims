@@ -1,14 +1,18 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import AppointmentDetailModal from '@/Components/AppointmentDetailModal.vue';
+import AppointmentListModal from '@/Components/AppointmentListModal.vue';
 import { Head, useForm, router } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
 import { ChevronLeftIcon, ChevronRightIcon, CalendarIcon } from '@heroicons/vue/24/solid';
+
+import { watch } from 'vue';
 
 const props = defineProps({
     appointments: Array,
     patients: Array,
     clinicians: Array,
+    schedules: Array,
     currentDate: Object,
 });
 
@@ -21,10 +25,24 @@ const form = useForm({
 
 const showDetailModal = ref(false);
 const selectedAppointment = ref(null);
+const showDayModal = ref(false);
+const dayModalAppointments = ref([]);
+const selectedDay = ref(null);
 
 const openAppointmentDetails = (appointment) => {
     selectedAppointment.value = appointment;
     showDetailModal.value = true;
+};
+
+const openDayModal = (day) => {
+    const appointmentsForDay = appointmentsByDay.value[day] || [];
+    if (appointmentsForDay.length > 0) {
+        selectedDay.value = day;
+        dayModalAppointments.value = appointmentsForDay;
+        showDayModal.value = true;
+    } else {
+        fetchAvailableSlots(day);
+    }
 };
 
 const appointmentsByDay = computed(() => {
@@ -51,6 +69,58 @@ const changeMonth = (offset) => {
     }, { preserveState: true, preserveScroll: true });
 };
 
+const availableSlots = ref([]);
+
+watch(() => form.clinician_id, () => {
+    availableSlots.value = [];
+    form.appointment_time = '';
+});
+
+const fetchAvailableSlots = (day) => {
+    // In a real implementation, this would make an API call
+    // or calculate slots based on the doctor's schedule.
+    // For now, we'll just populate with some dummy data.
+    if (!form.clinician_id) {
+        alert('Please select a clinician first.');
+        return;
+    }
+    const dateStr = `${props.currentDate.year}-${String(props.currentDate.month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    availableSlots.value = ['09:00', '09:30', '10:00', '10:30', '11:00'];
+    form.appointment_time = `${dateStr}T09:00`; // Default to first slot
+};
+
+const selectSlot = (slot) => {
+    const day = new Date(form.appointment_time).getDate();
+    const dateStr = `${props.currentDate.year}-${String(props.currentDate.month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    form.appointment_time = `${dateStr}T${slot}`;
+};
+
+
+const appointmentSearchQuery = ref('');
+const appointmentSearchResults = ref([]);
+
+watch(appointmentSearchQuery, debounce(async (newValue) => {
+    if (newValue.length < 2) {
+        appointmentSearchResults.value = [];
+        return;
+    }
+    try {
+        const response = await axios.get(route('appointments.search', { q: newValue }));
+        appointmentSearchResults.value = response.data;
+    } catch (error) {
+        console.error('Error searching for appointments:', error);
+    }
+}, 300));
+
+const goToAppointment = (appointment) => {
+    const appointmentDate = new Date(appointment.appointment_time);
+    router.get(route('appointments.index'), {
+        month: appointmentDate.getMonth() + 1,
+        year: appointmentDate.getFullYear(),
+    }, { preserveState: true, preserveScroll: true });
+    appointmentSearchQuery.value = '';
+};
+
 const submit = () => {
     form.post(route('appointments.store'), {
         onSuccess: () => form.reset(),
@@ -62,11 +132,33 @@ const submit = () => {
     <Head title="Appointment Scheduling" />
     <AuthenticatedLayout>
         <template #header>
-            <div class="flex items-center gap-3">
-                <CalendarIcon class="h-7 w-7 text-teal-500" />
-                <div>
-                    <h2 class="font-semibold text-xl text-gray-900">Appointment Scheduling</h2>
-                    <p class="text-sm text-gray-500">Book, view, and manage patient appointments.</p>
+            <div class="flex items-center justify-between gap-4">
+                <div class="flex items-center gap-3">
+                    <CalendarIcon class="h-7 w-7 text-teal-500" />
+                    <div>
+                        <h2 class="font-semibold text-xl text-gray-900">Appointment Scheduling</h2>
+                        <p class="text-sm text-gray-500">Book, view, and manage patient appointments.</p>
+                    </div>
+                </div>
+                <div class="relative w-full max-w-xs">
+                    <input
+                        v-model="appointmentSearchQuery"
+                        type="text"
+                        placeholder="Search appointments by patient..."
+                        class="block w-full rounded-lg border-gray-300 shadow-sm"
+                    />
+                    <div v-if="appointmentSearchResults.length > 0" class="absolute mt-1 w-full rounded-md bg-white shadow-lg z-10">
+                        <ul class="max-h-60 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none sm:text-sm">
+                            <li v-for="appointment in appointmentSearchResults" :key="appointment.id">
+                                <button @click="goToAppointment(appointment)" class="w-full text-left text-gray-900 cursor-pointer select-none relative py-2 pl-3 pr-9 hover:bg-gray-100">
+                                    <div class="flex items-center">
+                                        <span class="font-semibold block truncate">{{ appointment.patient.first_name }} {{ appointment.patient.last_name }}</span>
+                                        <span class="ml-2 text-gray-500 block truncate"> - {{ new Date(appointment.appointment_time).toLocaleDateString() }}</span>
+                                    </div>
+                                </button>
+                            </li>
+                        </ul>
+                    </div>
                 </div>
             </div>
         </template>
@@ -91,9 +183,20 @@ const submit = () => {
                                     <option v-for="clinician in clinicians" :key="clinician.id" :value="clinician.id">{{ clinician.name }}</option>
                                 </select>
                             </div>
-                            <div>
-                                <label for="appointment_time" class="block font-medium text-sm text-gray-700">Date & Time</label>
-                                <input id="appointment_time" type="datetime-local" v-model="form.appointment_time" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" required>
+                            <div v-if="availableSlots.length > 0">
+                                <label class="block font-medium text-sm text-gray-700">Available Slots</label>
+                                <div class="mt-2 grid grid-cols-4 gap-2">
+                                    <button
+                                        v-for="slot in availableSlots"
+                                        :key="slot"
+                                        type="button"
+                                        @click="selectSlot(slot)"
+                                        class="px-3 py-2 text-sm rounded-lg"
+                                        :class="form.appointment_time.endsWith(slot) ? 'bg-indigo-600 text-white' : 'bg-gray-100 hover:bg-gray-200'"
+                                    >
+                                        {{ slot }}
+                                    </button>
+                                </div>
                             </div>
                             <div>
                                 <label for="reason_for_visit" class="block font-medium text-sm text-gray-700">Reason for Visit (Optional)</label>
@@ -118,10 +221,10 @@ const submit = () => {
                         <div class="grid grid-cols-7 text-center">
                             <div v-for="day in daysOfWeek" :key="day" class="font-bold text-sm text-gray-600 py-3">{{ day }}</div>
                             <div v-for="blank in firstDayOfMonth" :key="'blank-' + blank" class="border-t border-r h-28"></div>
-                            <div v-for="day in daysInMonth" :key="day" class="border-t border-r h-28 p-1 text-left" :class="{'bg-indigo-50': day === today.getDate() && currentDate.month === today.getMonth() + 1 && currentDate.year === today.getFullYear()}">
+                            <div v-for="day in daysInMonth" :key="day" @click="openDayModal(day)" class="border-t border-r h-28 p-1 text-left cursor-pointer hover:bg-gray-50" :class="{'bg-indigo-50': day === today.getDate() && currentDate.month === today.getMonth() + 1 && currentDate.year === today.getFullYear()}">
                                 <div class="font-bold text-sm">{{ day }}</div>
                                 <div v-if="appointmentsByDay[day]" class="text-xs mt-1 space-y-1">
-                                    <div v-for="apt in appointmentsByDay[day]" :key="apt.id" @click="openAppointmentDetails(apt)" class="bg-teal-500 text-white px-2 py-1 rounded-md cursor-pointer hover:bg-teal-600 truncate">
+                                    <div v-for="apt in appointmentsByDay[day]" :key="apt.id" class="bg-teal-500 text-white px-2 py-1 rounded-md truncate">
                                         <p class="font-semibold">{{ apt.patient.first_name }}</p>
                                         <p class="text-xs">{{ new Date(apt.appointment_time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) }}</p>
                                     </div>
@@ -134,5 +237,6 @@ const submit = () => {
         </div>
 
         <AppointmentDetailModal :show="showDetailModal" :appointment="selectedAppointment" @close="showDetailModal = false" />
+        <AppointmentListModal :show="showDayModal" :appointments="dayModalAppointments" :day="selectedDay" @close="showDayModal = false" />
     </AuthenticatedLayout>
 </template>

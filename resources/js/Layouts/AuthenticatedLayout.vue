@@ -105,6 +105,10 @@ const switchLanguage = (lang) => {
                     <svg class="h-6 w-6 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
                     <span class="ml-3 whitespace-nowrap transition-opacity duration-200" :class="isSidebarCollapsed ? 'opacity-0' : 'opacity-100'">Payroll</span>
                 </Link>
+                <Link v-if="$page.props.auth.user?.role === 'admin'" :href="route('doctor-schedules.index')" class="flex items-center px-6 py-3 text-gray-700 hover:bg-gray-200">
+                    <svg class="h-6 w-6 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                    <span class="ml-3 whitespace-nowrap transition-opacity duration-200" :class="isSidebarCollapsed ? 'opacity-0' : 'opacity-100'">Doctor Schedules</span>
+                </Link>
                 <Link v-if="$page.props.auth.user?.role === 'admin'" :href="route('services.index')" class="flex items-center px-6 py-3 text-gray-700 hover:bg-gray-200">
                     <svg class="h-6 w-6 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
                     <span class="ml-3 whitespace-nowrap transition-opacity duration-200" :class="isSidebarCollapsed ? 'opacity-0' : 'opacity-100'">Service Catalogue</span>

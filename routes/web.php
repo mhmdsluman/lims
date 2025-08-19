@@ -11,6 +11,7 @@ use App\Http\Controllers\CarePlanController;
 use App\Http\Controllers\ClinicalNoteController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DiagnosisCodeController;
+use App\Http\Controllers\DoctorScheduleController;
 use App\Http\Controllers\EmergencyController;
 use App\Http\Controllers\FormularyController;
 use App\Http\Controllers\InsuranceContractController;
@@ -90,6 +91,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/patients/check-duplicate', [PatientController::class, 'checkDuplicate'])->name('patients.checkDuplicate');
 
     // Appointments
+    Route::get('/appointments/search', [AppointmentController::class, 'search'])->name('appointments.search');
     Route::get('/appointments', [AppointmentController::class, 'index'])->name('appointments.index');
     Route::post('/appointments', [AppointmentController::class, 'store'])->name('appointments.store');
     Route::patch('/appointments/{appointment}/status', [AppointmentController::class, 'updateStatus'])->name('appointments.updateStatus');
@@ -169,6 +171,7 @@ Route::delete('/billing/{bill}', [\App\Http\Controllers\BillController::class, '
     // Users & Admin
     Route::resource('users', UserController::class);
     Route::resource('service-commissions', ServiceCommissionController::class)->only(['index', 'create', 'store', 'destroy']);
+    Route::resource('doctor-schedules', DoctorScheduleController::class)->only(['index', 'create', 'store', 'destroy']);
 
     // Settings
     Route::get('/settings', [\App\Http\Controllers\SettingsController::class, 'index'])->name('settings.index');
